@@ -1,125 +1,165 @@
-# yu-ai-agent
+# Yu AI Agent
 
-基于 **Spring Boot 3** + **Java 21** + **Spring AI** 的 AI 应用与 ReAct 智能体项目。包含 AI 恋爱大师（多轮对话、RAG、工具调用、MCP）、自主规划智能体 **YuManus**（ReAct 工具调用 + 人机交互），以及高德地图、网页搜索、PDF 生成等工具。
-
-## 技术栈
-
-- **Java 21** · **Spring Boot 3.5**
-- **Spring AI** · 阿里云百炼 DashScope（通义千问）
-- **PgVector** 向量库 · RAG 检索增强
-- **Tool Calling** · 工具调用（搜索、地图、文件、PDF、终端等）
-- **MCP** · 模型上下文协议（如高德地图 MCP 服务）
+基于 **Spring AI** 与 **阿里云百炼（DashScope）** 的 AI 智能体应用：提供「恋爱大师」RAG 对话与「超级智能体」ReAct 工具调用（网页搜索、地图、PDF 生成、人机交互等），并配有 Vue3 前端。
 
 ## 功能概览
 
 | 模块 | 说明 |
 |------|------|
-| **LoveApp** | AI 恋爱大师：多轮对话、自定义 Advisor、RAG 知识库、工具与 MCP 调用 |
-| **YuManus** | ReAct 智能体：按需选择工具逐步完成任务，支持向用户提问（人机交互）与终止 |
-| **工具** | 网页搜索(searchWeb)、高德地理编码与静态图、文件操作、网页抓取、资源下载、终端、PDF 生成、终止(doTerminate)、向用户提问(askUserAndWait) |
-| **RAG** | PgVector 向量存储、文档加载与检索、可配合 Spring AI Advisor 做检索增强 |
+| **恋爱大师** | 基于 RAG 的恋爱/情感问答，支持同步、SSE 流式、多轮对话（可选 PostgreSQL + pgvector 或内存向量库） |
+| **超级智能体（YuManus）** | ReAct 多步推理 + 工具调用：搜索、地图、PDF、文件、网页抓取、终端、向用户提问、结束任务等，支持 SSE 按步推送 |
+| **前端** | Vue3 + Vite，恋爱大师聊天页 + 超级智能体聊天页，支持流式展示、地图图片、PDF 下载链接 |
 
-## 快速开始
+## 技术栈
 
-### 环境要求
+- **后端**：Java 21、Spring Boot 3.5、Spring AI 1.1、Spring AI Alibaba（DashScope）
+- **前端**：Vue 3、Vue Router、Vite 5、Axios
+- **可选**：PostgreSQL + pgvector（RAG 向量库）、SearchAPI.io（网页搜索）、高德 Web 服务（地图与静态图）
 
-- JDK 21
-- Maven 3.6+
-- PostgreSQL（含 PgVector 扩展，用于 RAG 向量库）
+## 项目结构
 
-### 1. 克隆项目
+```
+yu-ai-agent/
+├── src/main/java/com/yupi/yuaiagent/
+│   ├── YuAiAgentApplication.java          # 启动类
+│   ├── agent/                              # 智能体
+│   │   ├── BaseAgent.java                  # 抽象基类（步骤循环、流式、超时）
+│   │   ├── ReActAgent.java                 # ReAct think/act 抽象
+│   │   ├── ToolCallAgent.java              # 工具调用实现（格式化前端输出）
+│   │   ├── YuManus.java                    # 超级智能体（系统提示、maxSteps=20）
+│   │   └── UserInputQueue.java             # 人机交互输入队列
+│   ├── app/
+│   │   └── LoveApp.java                    # 恋爱大师应用（RAG + ChatClient）
+│   ├── controller/
+│   │   ├── AiController.java               # /ai/love_app/*、/ai/manus/chat
+│   │   ├── ManusController.java            # /user/input、/manus/run
+│   │   ├── FileController.java            # /files/pdf 下载
+│   │   ├── DocumentProcessingController.java
+│   │   └── HealthController.java
+│   ├── tools/                              # 智能体工具
+│   │   ├── ToolRegistration.java           # 注册所有 ToolCallback
+│   │   ├── WebSearchTool.java              # searchWeb（SearchAPI.io，带超时）
+│   │   ├── AmapTool.java                   # getMapAddressAndImage
+│   │   ├── PDFGenerationTool.java          # generatePDF
+│   │   ├── QueryUserTool.java              # askUserAndWait
+│   │   ├── TerminateTool.java              # doTerminate
+│   │   ├── FileOperationTool.java          # readFile / writeFile
+│   │   ├── WebScrapingTool.java            # scrapeWebPage
+│   │   ├── ResourceDownloadTool.java       # downloadResource
+│   │   └── TerminalOperationTool.java      # executeTerminalCommand
+│   └── rag/                                 # RAG 配置（向量检索、过滤）
+├── src/main/resources/
+│   ├── application.yml                     # 主配置（端口 8123、context-path /api）
+│   ├── application-local.example.yml       # 本地配置示例
+│   └── application-no-db.yml              # 无数据库 profile
+├── yu-ai-agent-frontend/                    # Vue3 前端
+│   ├── src/
+│   │   ├── App.vue
+│   │   ├── views/
+│   │   │   ├── LoveAppChat.vue             # 恋爱大师聊天
+│   │   │   └── ManusChat.vue               # 超级智能体聊天（SSE、PDF 下载）
+│   │   └── api/index.js                    # API baseURL、getApiBase
+│   ├── vite.config.js                      # 开发代理 /api -> localhost:8123
+│   └── package.json
+└── pom.xml
+```
+
+## 环境要求
+
+- **JDK 21**
+- **Maven 3.6+**
+- **Node.js 18+**（仅前端开发时需要）
+- 可选：**PostgreSQL**（使用 pgvector 做 RAG 时）
+
+## 配置
+
+1. 复制本地配置模板并填入密钥：
+
+   ```bash
+   cp src/main/resources/application-local.example.yml src/main/resources/application-local.yml
+   ```
+
+2. 在 `application-local.yml` 或环境变量中配置：
+
+   | 配置项 | 说明 |
+   |--------|------|
+   | `spring.ai.dashscope.api-key` / `DASHSCOPE_API_KEY` | 阿里云百炼 API Key（必填） |
+   | `search-api.api-key` / `SEARCH_API_KEY` | [SearchAPI.io](https://www.searchapi.io/) 网页搜索 Key（超级智能体 searchWeb 需要） |
+   | `amap.web-api-key` / `AMAP_WEB_API_KEY` | 高德 Web 服务 Key（智能体 getMapAddressAndImage 需要） |
+   | `spring.datasource.*` | 使用 pgvector 做 RAG 时配置数据源 |
+
+3. 无数据库运行：在 `application.yml` 中保持 `spring.profiles.active: local,no-db`，或启动时加上 `--spring.profiles.active=local,no-db`。此时 RAG 使用内存向量库，无需 PostgreSQL。
+
+## 运行
+
+### 后端
 
 ```bash
-git clone https://github.com/chenruijieCSDN/crj.git
-cd crj
+# 使用 local + no-db（不连 PostgreSQL）
+mvn spring-boot:run -Dspring-boot.run.profiles=local,no-db
+
+# 或使用 local（需配置 datasource）
+mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-### 2. 配置本地密钥（必做）
+服务启动后：**http://localhost:8123/api**（context-path 为 `/api`）。
 
-敏感配置不提交到仓库，需在本地单独配置：
-
-- 将 `src/main/resources/application-local.example.yml` **复制为** `application-local.yml`（与 `application.yml` 同目录）。
-- 在 `application-local.yml` 中填入你的密钥与数据库信息：
-
-```yaml
-spring:
-  ai:
-    dashscope:
-      api-key: 你的百炼/通义 API Key
-  datasource:
-    url: jdbc:postgresql://你的主机:5432/你的数据库
-    username: 你的用户名
-    password: 你的密码
-
-search-api:
-  api-key: 你的 SearchAPI.io Key   # 用于 searchWeb 百度搜索
-
-amap:
-  web-api-key: 你的高德 Web 服务 Key   # 用于地理编码与静态图
-```
-
-也可通过环境变量配置（与 `application.yml` 中的占位一致）：  
-`DASHSCOPE_API_KEY`、`DATASOURCE_URL`、`DATASOURCE_USERNAME`、`DATASOURCE_PASSWORD`、`SEARCH_API_KEY`、`AMAP_WEB_API_KEY`。
-
-### 3. 启动应用
-
-默认激活 `local` profile，会加载 `application-local.yml`：
+### 前端
 
 ```bash
-mvn spring-boot:run
+cd yu-ai-agent-frontend
+npm install
+npm run dev
 ```
 
-或 IDE 中运行 `YuAiAgentApplication`，并保证使用 `local` profile。
+浏览器访问 **http://localhost:5173**。前端通过 Vite 代理将 `/api` 转发到 `http://localhost:8123`，无需跨域。
 
-- 服务端口：**8123**
-- 上下文路径：**/api**
-- 接口文档（Knife4j）：`http://localhost:8123/api/doc.html`
-
-## 主要接口
-
-| 接口 | 说明 |
-|------|------|
-| `GET /api/manus/run?query=任务描述` | 使用 YuManus 执行一次 ReAct 任务（多步工具调用） |
-| `GET /api/user/input?input=用户回复` | 当 YuManus 通过 askUserAndWait 向用户提问时，前端调用此接口传入用户输入 |
-| 其他 | 见 Knife4j `/api/doc.html`（恋爱大师对话、RAG、文档处理等） |
-
-## 运行测试
-
-- 单元测试需激活 profile **test**，并保证有可用配置（如数据库、DashScope Key）。
-- YuManus 测试会使用不包含「向用户提问」工具的工具集，避免阻塞。  
-  IDE 运行测试时，若需指定 profile，可在运行配置的 VM 选项中添加：  
-  `-Dspring.profiles.active=local,test`
+### 生产构建
 
 ```bash
-mvn test -Dtest=YuManusTest#run
+# 后端
+mvn -DskipTests package
+
+# 前端
+cd yu-ai-agent-frontend && npm run build
 ```
 
-## 项目结构（简要）
+## 主要 API
 
-```
-src/main/java/com/yupi/yuaiagent/
-├── YuAiAgentApplication.java      # 启动类
-├── agent/                          # ReAct 智能体
-│   ├── BaseAgent.java
-│   ├── ReActAgent.java
-│   ├── ToolCallAgent.java
-│   ├── YuManus.java
-│   ├── UserInputQueue.java
-│   └── ...
-├── app/                            # LoveApp 恋爱大师
-├── controller/                     # Manus、健康检查、文档处理等
-├── tools/                          # 各类工具（搜索、地图、PDF、用户提问等）
-├── rag/                            # RAG 与向量库
-├── advisor/                        # 自定义 Advisor
-└── demo/                           # 大模型调用示例
-```
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET/POST | `/api/ai/manus/chat` | 超级智能体流式对话（SSE），POST 推荐，body `{"message":"任务描述"}` |
+| GET | `/api/ai/manus/run?query=...` | 超级智能体同步执行，返回全文 |
+| GET | `/api/user/input?input=...` | 人机交互：智能体 askUserAndWait 时前端传入用户输入 |
+| GET | `/api/ai/love_app/chat/sync` | 恋爱大师同步对话 |
+| GET | `/api/ai/love_app/chat/sse` | 恋爱大师 SSE 流式 |
+| GET | `/api/files/pdf?name=xxx.pdf` | 下载智能体生成的 PDF |
+| GET | `/api/health` | 健康检查 |
 
-## 参考
+接口文档（Swagger/Knife4j）：**http://localhost:8123/api/doc.html**（需先启动后端）。
+
+## 超级智能体工具一览
+
+| 工具名 | 说明 |
+|--------|------|
+| `searchWeb` | 百度网页搜索（SearchAPI.io），结果供模型参考，前端展示简短提示 |
+| `getMapAddressAndImage` | 高德地理编码 + 静态地图图片链接 |
+| `generatePDF` | 根据正文生成 PDF，前端可解析并展示「下载 PDF」链接 |
+| `askUserAndWait` | 向用户提问并等待输入，需配合 `/user/input` 使用 |
+| `doTerminate` | 结束当前任务 |
+| `readFile` / `writeFile` | 本地文件读写 |
+| `scrapeWebPage` | 网页内容抓取 |
+| `downloadResource` | 从 URL 下载资源 |
+| `executeTerminalCommand` | 执行终端命令（慎用） |
+
+后端对 `searchWeb`、`generatePDF` 等大段输出做了缩短处理，避免前端刷屏；单步执行带 120 秒超时，避免长时间无响应。
+
+## 参考与致谢
 
 - [Spring AI](https://docs.spring.io/spring-ai/reference/)
-- [阿里云百炼 / 灵积 DashScope](https://help.aliyun.com/zh/dashscope/)
-- [编程导航 · 智能体 Manus 与人机交互](https://www.codefather.cn/post/1928476155422310402)
+- [Spring AI Alibaba](https://github.com/alibaba/spring-ai-alibaba)
+- [智能体 Manus 改进——人机交互](https://www.codefather.cn/post/1928476155422310402)
 
-## License
+## 许可证
 
-本项目仅供学习与参考使用。
+见项目根目录 LICENSE 文件（如有）。
