@@ -6,7 +6,14 @@ spring:
   main:
     allow-bean-definition-overriding: true
   profiles:
-    active: local
+    # 无 PostgreSQL 时使用 local,no-db；有数据库时改为 active: local 并在 application-local.yml 中配置 datasource
+    active: local,no-db
+  # 排除 MCP 客户端自动配置：SseHttpClientTransportAutoConfiguration 依赖 io.modelcontextprotocol.spec.ClientMcpTransport（与当前 MCP SDK 版本不兼容），导致启动失败
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.autoconfigure.mcp.client.McpClientAutoConfiguration
+      - org.springframework.ai.autoconfigure.mcp.client.SseHttpClientTransportAutoConfiguration
+      - org.springframework.ai.autoconfigure.mcp.client.StdioTransportAutoConfiguration
   ai:
     dashscope:
       api-key: ${DASHSCOPE_API_KEY:}

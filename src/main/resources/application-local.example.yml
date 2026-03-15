@@ -8,6 +8,7 @@ spring:
     username: your_user
     password: your_password
 
+# SearchAPI.io 网页搜索 Key，智能体 searchWeb 需要，注册后在此填入 API Key
 search-api:
   api-key: your-searchapi-key
 

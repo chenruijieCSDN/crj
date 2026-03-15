@@ -41,7 +41,12 @@ public class PDFGenerationTool {
                 // 添加段落并关闭文档
                 document.add(paragraph);
             }
-            return "PDF generated successfully to: " + filePath;
+            // 同时用文字输出计划内容，便于前端在对话中直接展示
+            String successMsg = "PDF generated successfully to: " + filePath;
+            if (content != null && !content.isBlank()) {
+                successMsg += "\n\n【计划正文】\n" + content;
+            }
+            return successMsg;
         } catch (IOException e) {
             return "Error generating PDF: " + e.getMessage();
         }

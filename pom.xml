@@ -41,6 +41,12 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- 强制 MCP SDK 0.17：alibaba-agent-framework 带入的 0.14 缺少 ClientMcpTransport，导致 SseHttpClientTransportAutoConfiguration 启动失败 -->
+            <dependency>
+                <groupId>io.modelcontextprotocol.sdk</groupId>
+                <artifactId>mcp</artifactId>
+                <version>0.17.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -123,12 +129,11 @@
             <version>9.1.0</version>
             <type>pom</type>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.itextpdf/font-asian -->
+        <!-- https://mvnrepository.com/artifact/com.itextpdf/font-asian （中文字体，生成 PDF 必需） -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>font-asian</artifactId>
             <version>9.1.0</version>
-            <scope>test</scope>
         </dependency>
         <!-- Spring AI MCP Client -->
         <dependency>
@@ -225,5 +230,35 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>with-frontend</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-frontend</id>
+                                <phase>prepare-package</phase>
+                                <goals><goal>copy-resources</goal></goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/../yu-ai-agent-frontend/dist</directory>
+                                            <filtering>false</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

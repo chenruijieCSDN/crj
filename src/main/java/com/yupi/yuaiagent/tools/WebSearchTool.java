@@ -1,6 +1,6 @@
 package com.yupi.yuaiagent.tools;
 
-import cn.hutool.http.HttpUtil;
+import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -19,6 +19,8 @@ public class WebSearchTool {
 
     // SearchAPI 的搜索接口地址
     private static final String SEARCH_API_URL = "https://www.searchapi.io/api/v1/search";
+    /** 请求超时时间（毫秒），避免 searchWeb 长时间无响应导致步骤卡住 */
+    private static final int HTTP_TIMEOUT_MS = 25_000;
 
     private final String apiKey;
 
@@ -37,7 +39,11 @@ public class WebSearchTool {
         paramMap.put("api_key", apiKey);
         paramMap.put("engine", "baidu");
         try {
-            String response = HttpUtil.get(SEARCH_API_URL, paramMap);
+            String response = HttpRequest.get(SEARCH_API_URL)
+                    .form(paramMap)
+                    .timeout(HTTP_TIMEOUT_MS)
+                    .execute()
+                    .body();
             JSONObject jsonObject = JSONUtil.parseObj(response);
             Object organicObj = jsonObject.get("organic_results");
             if (organicObj == null) {

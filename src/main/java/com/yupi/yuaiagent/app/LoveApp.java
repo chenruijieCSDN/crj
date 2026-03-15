@@ -6,6 +6,7 @@ import com.yupi.yuaiagent.advisor.PgVectorRagAdvisor;
 import com.yupi.yuaiagent.chatmemory.FileBasedChatMemory;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
@@ -22,6 +23,7 @@ import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.ToolCallbacks;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -75,6 +77,21 @@ public class LoveApp {
         return text;
     }
 
+    /**
+     * AI 恋爱大师流式对话（返回 Flux，用于 SSE 等流式输出）
+     *
+     * @param message 用户消息
+     * @param chatId  对话ID（多轮记忆）
+     * @return 流式文本块
+     */
+    public Flux<String> doChatByStream(String message, String chatId) {
+        return chatClient.prompt()
+                .user(message)
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
+                .stream()
+                .content();
+    }
+
     record LoveReport(String title, List<String> suggestions) {
     }
 
@@ -106,9 +123,10 @@ public class LoveApp {
     @Resource
     private Advisor loveAppRagCloudAdvisor;
 
-    // PgVector向量数据库存储（当前未使用，已切换至阿里云知识库服务）
-     @Resource
-     private VectorStore pgVectorVectorStore;
+    // PgVector向量数据库存储（可选：无 PostgreSQL 时为 null，RAG 使用阿里云知识库）
+    @Autowired(required = false)
+    @Qualifier("pgVectorVectorStore")
+    private VectorStore pgVectorVectorStore;
 
 
     /**

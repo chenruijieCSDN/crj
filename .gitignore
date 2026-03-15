@@ -1,5 +1,6 @@
 ### CUSTOM ###
 application-local.yml
+.env
 tmp
 .claude/
 create_vector_store.sql
