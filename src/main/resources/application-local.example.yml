@@ -1,0 +1,15 @@
+# 复制为 application-local.yml 并填入真实配置（application-local.yml 已加入 .gitignore，不会提交）
+spring:
+  ai:
+    dashscope:
+      api-key: your-dashscope-api-key
+  datasource:
+    url: jdbc:postgresql://your-host:5432/your_db
+    username: your_user
+    password: your_password
+
+search-api:
+  api-key: your-searchapi-key
+
+amap:
+  web-api-key: your-amap-web-key

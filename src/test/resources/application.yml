@@ -1,0 +1,12 @@
+# 测试环境：排除 MCP 自动配置；datasource 需通过环境变量或 application-local 提供
+spring:
+  datasource:
+    url: ${DATASOURCE_URL:}
+    username: ${DATASOURCE_USERNAME:}
+    password: ${DATASOURCE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.autoconfigure.mcp.client.McpClientAutoConfiguration
+      - org.springframework.ai.autoconfigure.mcp.client.SseHttpClientTransportAutoConfiguration
+      - org.springframework.ai.autoconfigure.mcp.client.StdioTransportAutoConfiguration
