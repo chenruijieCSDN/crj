@@ -6,7 +6,7 @@
 FROM node:20-alpine AS frontend
 WORKDIR /app/frontend
 COPY yu-ai-agent-frontend/package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 COPY yu-ai-agent-frontend/ ./
 RUN npm run build
 
