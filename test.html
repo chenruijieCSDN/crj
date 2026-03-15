@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试页面</title>
+</head>
+<body>
+    <h1>测试服务器连接</h1>
+    <button onclick="testConnection()">测试连接</button>
+    <div id="result"></div>
+
+    <script>
+        function testConnection() {
+            const result = document.getElementById('result');
+
+            // 测试首页
+            fetch('http://152.136.99.177:8123/api/')
+                .then(response => response.text())
+                .then(html => {
+                    result.innerHTML += '<p>✅ 首页访问成功，长度：' + html.length + '</p>';
+
+                    // 测试JS资源
+                    return fetch('http://152.136.99.177:8123/api/assets/index-DxXxD-y2.js');
+                })
+                .then(response => {
+                    if (response.ok) {
+                        result.innerHTML += '<p>✅ JS资源加载成功</p>';
+                    } else {
+                        result.innerHTML += '<p>❌ JS资源加载失败：' + response.status + '</p>';
+                    }
+
+                    // 测试CSS资源
+                    return fetch('http://152.136.99.177:8123/api/assets/index-CQVJZw7o.css');
+                })
+                .then(response => {
+                    if (response.ok) {
+                        result.innerHTML += '<p>✅ CSS资源加载成功</p>';
+                    } else {
+                        result.innerHTML += '<p>❌ CSS资源加载失败：' + response.status + '</p>';
+                    }
+
+                    // 测试API接口
+                    return fetch('http://152.136.99.177:8123/api/actuator/health');
+                })
+                .then(response => response.json())
+                .then(data => {
+                    result.innerHTML += '<p>✅ 健康检查API正常：' + JSON.stringify(data) + '</p>';
+                })
+                .catch(error => {
+                    result.innerHTML += '<p>❌ 错误：' + error.message + '</p>';
+                });
+        }
+
+        // 自动测试
+        window.onload = function() {
+            testConnection();
+        };
+    </script>
+</body>
+</html>

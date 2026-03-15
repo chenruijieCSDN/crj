@@ -124,7 +124,7 @@ mvn -DskipTests package
 cd yu-ai-agent-frontend && npm run build && cd .. && mvn -DskipTests package -Pwith-frontend
 ```
 
-**服务器部署**（前后端一体、Nginx、HTTPS、systemd）见 **[DEPLOY.md](DEPLOY.md)**。
+**服务器部署**（前后端一体、Nginx、HTTPS、systemd）见 **[DEPLOY.md](DEPLOY.md)**。**本机上传 / 从 GitHub 部署**的步骤与脚本见 **[DEPLOY-GUIDE.md](DEPLOY-GUIDE.md)**。
 
 ## 主要 API
 

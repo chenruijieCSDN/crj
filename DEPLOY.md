@@ -40,7 +40,7 @@ wget -O install.sh https://download.bt.cn/install/install-ubuntu_6.0.sh && sudo 
 ```bash
 cd /www/wwwroot/yu-ai-agent
 echo "DASHSCOPE_API_KEY=你的阿里云百炼密钥" > .env
-docker compose build
+docker compose build --no-cache   # 代码更新后建议加 --no-cache 全量重建
 docker compose up -d
 ```
 
@@ -261,7 +261,7 @@ sudo systemctl status yu-ai-agent
 
 ---
 
-## 六、Nginx 反向代理（HTTPS + 80/443）
+## 七、Nginx 反向代理（HTTPS + 80/443）
 
 若希望通过 **80/443** 访问，并配置 **HTTPS**，可在本机装 Nginx，反向代理到后端 jar。
 
@@ -333,7 +333,7 @@ sudo certbot --nginx -d your_domain.com
 ## 九、常见问题
 
 - **Docker 构建失败**：确保在**项目根目录**执行 `docker compose build`（含 `Dockerfile`、`yu-ai-agent-frontend/`、`pom.xml`、`src/`）。构建较久属正常（需下载 Node、Maven 镜像并编译前后端）。
-- **前端白屏 / 接口 404**：确认访问地址带 `/api/`（如 `http://IP:8123/api/`）。Docker 与 jar 部署均相同。
+- **前端白屏 / 接口 404**：确认访问地址带 `/api/`（如 `http://IP:8123/api/`）。本项目已配置 Vite `base: '/api/'` 与 Vue Router `base`，部署时需用仓库内多阶段 Dockerfile 或 `-Pwith-frontend` 打包含前端的 jar；若仍白屏，代码更新后需 `docker compose build --no-cache` 再 `up -d`。
 - **SSE 断连**：Nginx 需保留较长 `proxy_read_timeout`（示例中为 300s）；若仍断，可适当调大。
 - **密钥不生效**：Docker 用 `-e DASHSCOPE_API_KEY=xxx` 或 `.env`；systemd 用 `Environment=`。确认变量在运行进程内生效。
 - **腾讯云访问不了**：在安全组中放行 8123（或 Nginx 的 80/443）。
