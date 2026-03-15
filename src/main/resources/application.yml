@@ -1,0 +1,72 @@
+# 敏感配置请使用环境变量或在 application-local.yml 中设置（该文件已加入 .gitignore）
+# 需配置：DASHSCOPE_API_KEY, DATASOURCE_URL, DATASOURCE_USERNAME, DATASOURCE_PASSWORD, SEARCH_API_KEY, AMAP_WEB_API_KEY
+spring:
+  application:
+    name: yu-ai-agent
+  main:
+    allow-bean-definition-overriding: true
+  profiles:
+    active: local
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:}
+      chat:
+        options:
+          model: qwen-plus
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: gemma3:1b
+    mcp:
+      client:
+        stdio:
+          servers-configuration: classpath:mcp-servers.json
+
+  datasource:
+    url: ${DATASOURCE_URL:}
+    username: ${DATASOURCE_USERNAME:}
+    password: ${DATASOURCE_PASSWORD:}
+    vectorstore:
+      pgvector:
+        index-type: HNSW
+        dimensions: 1024  # DashScope embedding模型输出1024维向量
+        distance-type: COSINE_DISTANCE
+        max-document-batch-size: 10000 # Optional: Maximum number of documents per batch
+
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+# springdoc-openapi ??????
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.yupi.yuaiagent.controller
+# knife4j???????????????
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+logging:
+  level:
+    com:
+      yupi:
+        yuaiagent:
+          advisor: DEBUG
+    #org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor: DEBUG
+
+# SearchAPI.io 搜索 Key，见 https://www.searchapi.io/
+search-api:
+  api-key: ${SEARCH_API_KEY:}
+
+# 高德地图 Web 服务 API（地理编码 + 静态图），需在控制台申请 Web 服务 Key
+amap:
+  web-api-key: ${AMAP_WEB_API_KEY:}
