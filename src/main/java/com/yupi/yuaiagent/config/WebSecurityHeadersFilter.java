@@ -25,12 +25,17 @@ public class WebSecurityHeadersFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         response.setHeader("X-Content-Type-Options", "nosniff");
-        // 静态资源带 hash，可长期缓存；HTML 不缓存便于更新
         String path = request.getRequestURI();
-        if (path != null && (path.startsWith("/api/assets/") || path.endsWith(".js") || path.endsWith(".css"))) {
-            response.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-        } else if (path != null && path.equals("/api") || path.equals("/api/")) {
-            response.setHeader("Cache-Control", "no-cache");
+        if (path != null) {
+            // 静态资源带 hash，用 Cache-Control 长期缓存（替代 Expires）
+            if (path.startsWith("/api/assets/") || path.endsWith(".js") || path.endsWith(".css")) {
+                response.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+            } else if ("/api".equals(path) || "/api/".equals(path)) {
+                response.setHeader("Cache-Control", "no-cache");
+                response.setContentType("text/html;charset=UTF-8");
+            } else {
+                response.setHeader("Cache-Control", "no-cache");
+            }
         }
         filterChain.doFilter(request, response);
     }
