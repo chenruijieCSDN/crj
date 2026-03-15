@@ -1,0 +1,20 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+*.iml
+.vscode
+
+# Build outputs（在镜像内重新构建）
+target/
+yu-ai-agent-frontend/dist
+yu-ai-agent-frontend/node_modules
+
+# 本地配置（密钥勿入镜像）
+**/application-local.yml
+
+# 文档与杂项
+*.md
+!README.md

@@ -1,0 +1,10 @@
+# 无数据库运行：激活 no-db 时排除 DataSource，应用可正常启动（RAG 使用阿里云知识库，不依赖本地 PostgreSQL）
+# 使用方式：spring.profiles.active=local,no-db  或在 IDE 运行配置中勾选 no-db
+# 注意：no-db 会与主配置的 autoconfigure.exclude 合并，此处仅追加 DataSource 排除（若主配置已有 exclude 列表，Spring 会按 profile 合并）
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.autoconfigure.mcp.client.McpClientAutoConfiguration
+      - org.springframework.ai.autoconfigure.mcp.client.SseHttpClientTransportAutoConfiguration
+      - org.springframework.ai.autoconfigure.mcp.client.StdioTransportAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

@@ -1,0 +1,19 @@
+# 一键启动（在项目根目录）：docker compose up -d
+# 首次构建：docker compose build
+# 环境变量可写在 .env 或此处 environment
+
+services:
+  yu-ai-agent:
+    build: .
+    image: yu-ai-agent:latest
+    container_name: yu-ai-agent
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+    environment:
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}
+      - SEARCH_API_KEY=${SEARCH_API_KEY:-}
+      - AMAP_WEB_API_KEY=${AMAP_WEB_API_KEY:-}
+    # 可选：挂载 PDF 等生成文件到宿主机
+    # volumes:
+    #   - ./data/tmp:/app/tmp
