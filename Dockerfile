@@ -2,12 +2,13 @@
 # 适用于腾讯云 CVM/轻量等，构建：docker build -t yu-ai-agent .
 # 运行：docker run -d -p 8123:8123 -e DASHSCOPE_API_KEY=sk-xxx yu-ai-agent
 
-# 阶段 1：构建前端
+# 阶段 1：构建前端（NODE_ENV=production 使 Vite 输出 base /api/，与后端 context-path 一致）
 FROM node:20-alpine AS frontend
 WORKDIR /app/frontend
 COPY yu-ai-agent-frontend/package*.json ./
 RUN npm ci
 COPY yu-ai-agent-frontend/ ./
+ENV NODE_ENV=production
 RUN npm run build
 
 # 阶段 2：构建后端（含前端静态资源）
