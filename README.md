@@ -2,6 +2,14 @@
 
 基于 **Spring AI** 与 **阿里云百炼（DashScope）** 的 AI 智能体应用：提供「恋爱大师」RAG 对话与「超级智能体」ReAct 工具调用（网页搜索、地图、PDF 生成、人机交互等），并配有 Vue3 前端。
 
+## 在线演示
+
+- **生产环境**：[https://ai.crj-ai.top/api/](https://ai.crj-ai.top/api/)（前后端一体部署，可直接体验聊天与智能体能力）
+
+## 参与贡献
+
+欢迎一起改进本项目：提 **Issue** 反馈问题或需求，发 **Pull Request** 提交代码与文档；也欢迎 Fork 后按下方「运行」自行部署与二次开发。
+
 ## 功能概览
 
 | 模块 | 说明 |
@@ -138,7 +146,7 @@ cd yu-ai-agent-frontend && npm run build && cd .. && mvn -DskipTests package -Pw
 | GET | `/api/files/pdf?name=xxx.pdf` | 下载智能体生成的 PDF |
 | GET | `/api/health` | 健康检查 |
 
-接口文档（Swagger/Knife4j）：**http://localhost:8123/api/doc.html**（需先启动后端）。
+接口文档（Swagger/Knife4j）：本地 **http://localhost:8123/api/doc.html**（需先启动后端）；若线上已开启文档，可尝试 **https://ai.crj-ai.top/api/doc.html**。
 
 ## 超级智能体工具一览
 
