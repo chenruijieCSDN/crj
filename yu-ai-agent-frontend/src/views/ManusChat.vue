@@ -15,6 +15,7 @@
           <div class="msg-content">
             <template v-for="(seg, segIdx) in (msg.role === 'ai' ? contentSegments(msg.content) : [{ type: 'text', value: msg.content }])" :key="segIdx">
               <span v-if="seg.type === 'text'" class="msg-text">{{ seg.value }}</span>
+              <a v-else-if="seg.type === 'link'" :href="seg.value" class="msg-inline-link" target="_blank" rel="noopener">{{ seg.value }}</a>
               <img v-else-if="seg.type === 'image'" :src="seg.value" class="msg-inline-img" alt="图片" loading="lazy" />
             </template>
           </div>
@@ -96,28 +97,41 @@ function isImageUrl(url) {
   return false
 }
 
+/** 统一清洗 AI 文本：去掉包裹引号，反转义换行与引号 */
+function normalizeAiContent(content) {
+  if (!content || typeof content !== 'string') return ''
+  let s = content.trim()
+  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+    s = s.slice(1, -1)
+  }
+  return s
+    .replace(/\\n/g, '\n')
+    .replace(/\\"/g, '"')
+    .trim()
+}
+
 /** 将 AI 回复内容拆成文本段与图片段，便于渲染文字+图片 */
 function contentSegments(content) {
-  if (!content || typeof content !== 'string') return [{ type: 'text', value: '' }]
-  // 匹配可能是图片的 URL（高德 staticmap 或常见图片后缀）
+  const cleaned = normalizeAiContent(content)
+  if (!cleaned) return [{ type: 'text', value: '' }]
+  // 匹配 URL，图片链接渲染为图片，其它链接渲染为可点击文本
   const urlRe = /https?:\/\/[^\s\n\)\]"]+/g
   const segments = []
   let lastEnd = 0
   let match
   const re = new RegExp(urlRe.source, 'g')
-  while ((match = re.exec(content)) !== null) {
+  while ((match = re.exec(cleaned)) !== null) {
     const url = match[0]
-    if (!isImageUrl(url)) continue
     if (match.index > lastEnd) {
-      segments.push({ type: 'text', value: content.slice(lastEnd, match.index) })
+      segments.push({ type: 'text', value: cleaned.slice(lastEnd, match.index) })
     }
-    segments.push({ type: 'image', value: url })
+    segments.push({ type: isImageUrl(url) ? 'image' : 'link', value: url })
     lastEnd = re.lastIndex
   }
-  if (lastEnd < content.length) {
-    segments.push({ type: 'text', value: content.slice(lastEnd) })
+  if (lastEnd < cleaned.length) {
+    segments.push({ type: 'text', value: cleaned.slice(lastEnd) })
   }
-  return segments.length ? segments : [{ type: 'text', value: content }]
+  return segments.length ? segments : [{ type: 'text', value: cleaned }]
 }
 
 async function send() {
@@ -295,6 +309,13 @@ onUnmounted(() => {
   border-radius: var(--radius-sm);
   margin-top: 0.5rem;
   border: 1px solid var(--border);
+}
+.msg-inline-link {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--manus-accent);
+  text-decoration: underline;
+  word-break: break-all;
 }
 .pdf-link {
   display: inline-block;
